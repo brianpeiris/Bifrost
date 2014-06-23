@@ -1,7 +1,7 @@
 var camera, scene, renderer,
     geometry, material, light, sphere, velocity = new THREE.Vector3(0.020, 0.021, 0.022),
     mesh, texture, t=0,
-    OReffect, webrift;
+    OReffect, webrift, treadmill;
 
 init();
 animate();
@@ -9,30 +9,75 @@ animate();
 function init() {
 
     webrift = new Webrift("ws://localhost:1981");
+    treadmill = new Treadmill('ws://localhost:1982');
 
     camera = new THREE.PerspectiveCamera(75, 1280/800, 0.3, 10000.0);
     camera.position.set(0, 1.62, 3.0);
 
     scene = new THREE.Scene();
 
+    /*
     geometry = new THREE.CubeGeometry(8, 8 ,8);
     geometry.computeTangents();
     texture = new THREE.ImageUtils.loadTexture( 'grid.png' );
     normal = new THREE.ImageUtils.loadTexture( 'normalmap.png' );
-    material = new THREE.MeshPhongMaterial({color: 0xffff00, side: THREE.DoubleSide, map: texture, normalMap: normal, shininess: 100, metal: false, specular: 0xffffff});
+    material = new THREE.MeshPhongMaterial({
+        color: 0xffff00,
+        side: THREE.DoubleSide,
+        map: texture,
+        normalMap: normal,
+        shininess: 100,
+        metal: false,
+        specular: 0xffffff
+    });
     mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(0, 4, 0);
     scene.add(mesh);
+    */
 
-    geometry = new THREE.SphereGeometry(0.1, 16, 32)
-    material = new THREE.MeshBasicMaterial({color: 0xffffff});
-    sphere = new THREE.Mesh(geometry, material);
-    sphere.position.set(0, 4, 0);
-    scene.add(sphere);
+    gnd_geo = new THREE.CubeGeometry(4, 1, 500);
+    gnd_tex = new THREE.ImageUtils.loadTexture('grid.png');
+    gnd_mat = new THREE.MeshPhongMaterial({
+        color: 0xffff00,
+        side: THREE.DoubleSide,
+        map: gnd_tex,
+    });
+    gnd = new THREE.Mesh(gnd_geo, gnd_mat);
+    gnd.position.set(0, 0, 0);
+    scene.add(gnd);
 
-    light = new THREE.PointLight(0xffffff, 1.0, 48.0);
+    sky_geo = new THREE.SphereGeometry(500, 8, 8);
+    sky_tex = new THREE.ImageUtils.loadTexture('grid.png');
+    sky_mat = new THREE.MeshPhongMaterial({
+        color: 0xffff00,
+        side: THREE.DoubleSide,
+        map: sky_tex,
+    });
+    sky = new THREE.Mesh(sky_geo, sky_mat);
+    sky.position.set(0, 4, 0);
+    scene.add(sky);
+
+    for (var i = 0; i < 10; i++) {
+        mrk_geo = new THREE.CubeGeometry(1, Math.random() * 10 + 4, 1);
+        mrk_color = new THREE.Color();
+        mrk_color.setHSL(Math.random(), 1, 0.2);
+        mrk_mat = new THREE.MeshPhongMaterial({color: mrk_color.getHex()});
+        mrk = new THREE.Mesh(mrk_geo, mrk_mat);
+        mrk.position.set(4, 0, -i * 5);
+        scene.add(mrk);
+
+        mrk_geo = new THREE.CubeGeometry(1, Math.random() * 10 + 4, 1);
+        mrk_color = new THREE.Color();
+        mrk_color.setHSL(Math.random(), 1, 0.2);
+        mrk_mat = new THREE.MeshPhongMaterial({color: mrk_color.getHex()});
+        mrk = new THREE.Mesh(mrk_geo, mrk_mat);
+        mrk.position.set(-4, 0, -i * 5);
+        scene.add(mrk);
+    }
+
+    light = new THREE.PointLight(0xffffff);
     light.position.set(0, 4, 0);
-    scene.add(light)
+    scene.add(light);
 
     var canvas = document.getElementById("renderCanvas");
     renderer = new THREE.WebGLRenderer({canvas: canvas});
@@ -58,20 +103,9 @@ function init() {
 }
 
 function animate() {
-
     requestAnimationFrame(animate);
-    sphere.position.add(velocity);
-    if (sphere.position.x > 4 - 0.1 || sphere.position.x < -4 + 0.1) {
-        velocity.x *= -1;
-    }
-    if (sphere.position.y > 8 - 0.1 || sphere.position.y < 0 + 0.1) {
-        velocity.y *= -1;
-    }
-    if (sphere.position.z > 4 - 0.1 || sphere.position.z < -4 + 0.1) {
-        velocity.z *= -1;
-    }
     camera.quaternion.set(webrift.x, webrift.y, webrift.z, webrift.w);
-    light.position = sphere.position.clone();
+    camera.position.z -= treadmill.distance / 100;
+    //console.log(treadmill.speed / 100);
     OReffect.render(scene, camera);
-
 }
