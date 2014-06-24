@@ -1,7 +1,10 @@
 var camera, scene, renderer,
     geometry, material, light, sphere, velocity = new THREE.Vector3(0.020, 0.021, 0.022),
     mesh, texture, t=0,
-    OReffect, webrift, treadmill;
+    OReffect, webrift, treadmill, stats;
+var old_webrift = {x: null, y: null, z: null, w: null};
+var old_treadmill = null;
+var ep = 0.0001;
 
 init();
 animate();
@@ -35,7 +38,7 @@ function init() {
     scene.add(mesh);
     */
 
-    gnd_geo = new THREE.CubeGeometry(4, 1, 500);
+    gnd_geo = new THREE.CylinderGeometry(4, 1, 500);
     gnd_tex = new THREE.ImageUtils.loadTexture('grid.png');
     gnd_mat = new THREE.MeshPhongMaterial({
         color: 0xffff00,
@@ -100,12 +103,34 @@ function init() {
 
     document.body.appendChild(renderer.domElement);
 
+    stats = new Stats();
+    document.body.appendChild(stats.domElement);
+
 }
 
 function animate() {
     requestAnimationFrame(animate);
-    camera.quaternion.set(webrift.x, webrift.y, webrift.z, webrift.w);
-    camera.position.z -= treadmill.distance / 100;
-    //console.log(treadmill.speed / 100);
-    OReffect.render(scene, camera);
+
+    stats.begin();
+
+    if (
+        true ||
+        Math.abs(webrift.x - old_webrift.x) > ep ||
+        Math.abs(webrift.y -  old_webrift.y) > ep ||
+        Math.abs(webrift.z -  old_webrift.z) > ep ||
+        Math.abs(webrift.w -  old_webrift.w) > ep ||
+        old_treadmill != treadmill.distance
+    ){
+        camera.quaternion.set(webrift.x, webrift.y, webrift.z, webrift.w);
+        //camera.position.z -= treadmill.distance / 100;
+        camera.position.z -= 0.02;
+        OReffect.render(scene, camera);
+        old_webrift.x = webrift.x;
+        old_webrift.y = webrift.y;
+        old_webrift.z = webrift.z;
+        old_webrift.w = webrift.w;
+        old_treadmill = treadmill.distance;
+    }
+
+    stats.end();
 }
