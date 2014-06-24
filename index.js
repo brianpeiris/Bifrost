@@ -5,6 +5,9 @@ var camera, scene, renderer,
 var old_webrift = {x: null, y: null, z: null, w: null};
 var old_treadmill = null;
 var ep = 0.0001;
+var track_circ = 400;
+var track_radius = track_circ / 2 / Math.PI;
+var i = 0;
 
 init();
 animate();
@@ -15,44 +18,34 @@ function init() {
     treadmill = new Treadmill('ws://localhost:1982');
 
     camera = new THREE.PerspectiveCamera(75, 1280/800, 0.3, 10000.0);
-    camera.position.set(0, 1.62, 3.0);
+    camera.position.set(0, track_radius + 1.62, 0);
 
     scene = new THREE.Scene();
 
-    /*
-    geometry = new THREE.CubeGeometry(8, 8 ,8);
-    geometry.computeTangents();
-    texture = new THREE.ImageUtils.loadTexture( 'grid.png' );
-    normal = new THREE.ImageUtils.loadTexture( 'normalmap.png' );
-    material = new THREE.MeshPhongMaterial({
-        color: 0xffff00,
-        side: THREE.DoubleSide,
-        map: texture,
-        normalMap: normal,
-        shininess: 100,
-        metal: false,
-        specular: 0xffffff
-    });
-    mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(0, 4, 0);
-    scene.add(mesh);
-    */
-
-    gnd_geo = new THREE.CylinderGeometry(4, 1, 500);
+    gnd_geo = new THREE.CylinderGeometry(track_radius, track_radius, 4, 256, 1, true);
     gnd_tex = new THREE.ImageUtils.loadTexture('grid.png');
+    gnd_tex.wrapS = THREE.RepeatWrapping;
+    gnd_tex.wrapT = THREE.RepeatWrapping;
+    gnd_tex.repeat.x = 12.5;
     gnd_mat = new THREE.MeshPhongMaterial({
         color: 0xffff00,
+        ambient: 0xffff00,
         side: THREE.DoubleSide,
         map: gnd_tex,
     });
     gnd = new THREE.Mesh(gnd_geo, gnd_mat);
-    gnd.position.set(0, 0, 0);
+    gnd.rotation.z = Math.PI / 2;
     scene.add(gnd);
 
-    sky_geo = new THREE.SphereGeometry(500, 8, 8);
-    sky_tex = new THREE.ImageUtils.loadTexture('grid.png');
+    sky_geo = new THREE.SphereGeometry(10000, 8, 8);
+    sky_tex = new THREE.ImageUtils.loadTexture('stars.jpg');
+    sky_tex.wrapS = THREE.RepeatWrapping;
+    sky_tex.wrapT = THREE.RepeatWrapping;
+    sky_tex.repeat.x = 1;
+    sky_tex.repeat.y = 1;
     sky_mat = new THREE.MeshPhongMaterial({
         color: 0xffff00,
+        ambient: 0xffffff,
         side: THREE.DoubleSide,
         map: sky_tex,
     });
@@ -60,26 +53,13 @@ function init() {
     sky.position.set(0, 4, 0);
     scene.add(sky);
 
-    for (var i = 0; i < 10; i++) {
-        mrk_geo = new THREE.CubeGeometry(1, Math.random() * 10 + 4, 1);
-        mrk_color = new THREE.Color();
-        mrk_color.setHSL(Math.random(), 1, 0.2);
-        mrk_mat = new THREE.MeshPhongMaterial({color: mrk_color.getHex()});
-        mrk = new THREE.Mesh(mrk_geo, mrk_mat);
-        mrk.position.set(4, 0, -i * 5);
-        scene.add(mrk);
+    mrk_geo = new THREE.CubeGeometry(4, 1, 1);
+    mrk_mat = new THREE.MeshPhongMaterial({ambient: 0xff0000});
+    mrk = new THREE.Mesh(mrk_geo, mrk_mat);
+    mrk.position.set(0, track_radius, 0);
+    scene.add(mrk);
 
-        mrk_geo = new THREE.CubeGeometry(1, Math.random() * 10 + 4, 1);
-        mrk_color = new THREE.Color();
-        mrk_color.setHSL(Math.random(), 1, 0.2);
-        mrk_mat = new THREE.MeshPhongMaterial({color: mrk_color.getHex()});
-        mrk = new THREE.Mesh(mrk_geo, mrk_mat);
-        mrk.position.set(-4, 0, -i * 5);
-        scene.add(mrk);
-    }
-
-    light = new THREE.PointLight(0xffffff);
-    light.position.set(0, 4, 0);
+    light = new THREE.AmbientLight(0xffffff);
     scene.add(light);
 
     var canvas = document.getElementById("renderCanvas");
@@ -121,10 +101,17 @@ function animate() {
         Math.abs(webrift.w -  old_webrift.w) > ep ||
         old_treadmill != treadmill.distance
     ){
-        camera.quaternion.set(webrift.x, webrift.y, webrift.z, webrift.w);
+        //camera.quaternion.set(webrift.x, webrift.y, webrift.z, webrift.w);
         //camera.position.z -= treadmill.distance / 100;
-        camera.position.z -= 0.02;
+        i += 0.03;
+
+        camera.position.z = Math.sin(i/track_circ * Math.PI * 2) / -2 * (1.62 + track_radius * 2);
+        camera.position.y = Math.cos(i/track_circ * Math.PI * 2) / 2 * (1.62 + track_radius * 2);
+        camera.rotation.x = i / track_circ * Math.PI * -2;
+        if (i >= track_circ) { i = 0; }
+
         OReffect.render(scene, camera);
+
         old_webrift.x = webrift.x;
         old_webrift.y = webrift.y;
         old_webrift.z = webrift.z;
