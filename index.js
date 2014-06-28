@@ -4,10 +4,11 @@ var camera, scene, renderer,
     OReffect, webrift, treadmill, stats;
 var old_webrift = {x: null, y: null, z: null, w: null};
 var old_treadmill = null;
-var ep = 0.0001;
-var track_circ = 400;
+var ep = 0.001;
+var track_circ = 50;
 var track_radius = track_circ / 2 / Math.PI;
 var i = 0;
+var camera_pivot;
 
 init();
 animate();
@@ -17,16 +18,23 @@ function init() {
     webrift = new Webrift("ws://localhost:1981");
     treadmill = new Treadmill('ws://localhost:1982');
 
+    scene = new THREE.Scene();
+
+    camera_pivot_geo = new THREE.CubeGeometry(1, track_radius, 1);
+    camera_pivot_mat = new THREE.MeshPhongMaterial({ambient: 0x00ff00});
+    camera_pivot = new THREE.Mesh(camera_pivot_geo, camera_pivot_mat);
+    camera_pivot.position.set(0, 0, 0);
+    scene.add(camera_pivot);
+
     camera = new THREE.PerspectiveCamera(75, 1280/800, 0.3, 10000.0);
     camera.position.set(0, track_radius + 1.62, 0);
-
-    scene = new THREE.Scene();
+    camera_pivot.add(camera);
 
     gnd_geo = new THREE.CylinderGeometry(track_radius, track_radius, 4, 256, 1, true);
     gnd_tex = new THREE.ImageUtils.loadTexture('grid.png');
     gnd_tex.wrapS = THREE.RepeatWrapping;
     gnd_tex.wrapT = THREE.RepeatWrapping;
-    gnd_tex.repeat.x = 12.5;
+    gnd_tex.repeat.x = track_circ / 8;
     gnd_mat = new THREE.MeshPhongMaterial({
         color: 0xffff00,
         ambient: 0xffff00,
@@ -53,7 +61,7 @@ function init() {
     sky.position.set(0, 4, 0);
     scene.add(sky);
 
-    mrk_geo = new THREE.CubeGeometry(4, 1, 1);
+    mrk_geo = new THREE.CubeGeometry(4, 0.1, 0.1);
     mrk_mat = new THREE.MeshPhongMaterial({ambient: 0xff0000});
     mrk = new THREE.Mesh(mrk_geo, mrk_mat);
     mrk.position.set(0, track_radius, 0);
@@ -94,23 +102,23 @@ function animate() {
     stats.begin();
 
     if (
-        true ||
+        // true ||
         Math.abs(webrift.x - old_webrift.x) > ep ||
         Math.abs(webrift.y -  old_webrift.y) > ep ||
         Math.abs(webrift.z -  old_webrift.z) > ep ||
         Math.abs(webrift.w -  old_webrift.w) > ep ||
         old_treadmill != treadmill.distance
     ){
-        //camera.quaternion.set(webrift.x, webrift.y, webrift.z, webrift.w);
-        //camera.position.z -= treadmill.distance / 100;
-        i += 0.03;
+        camera.quaternion.set(webrift.x, webrift.y, webrift.z, webrift.w);
+        i += treadmill.distance / 100;
+        //i += 0.1;
 
-        camera.position.z = Math.sin(i/track_circ * Math.PI * 2) / -2 * (1.62 + track_radius * 2);
-        camera.position.y = Math.cos(i/track_circ * Math.PI * 2) / 2 * (1.62 + track_radius * 2);
-        camera.rotation.x = i / track_circ * Math.PI * -2;
+        camera_pivot.rotation.x = i / track_circ * Math.PI * -2;
+
         if (i >= track_circ) { i = 0; }
 
         OReffect.render(scene, camera);
+        //renderer.render(scene, camera);
 
         old_webrift.x = webrift.x;
         old_webrift.y = webrift.y;

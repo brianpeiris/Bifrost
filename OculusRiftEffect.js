@@ -168,7 +168,7 @@ THREE.OculusRiftEffect = function ( renderer, options ) {
 
 		pCamera.projectionMatrix.copy(left.proj);
 
-		pCamera.matrix.copy(camera.matrix).multiply(left.tranform);
+		pCamera.matrix.copy(camera.matrixWorld).multiply(left.tranform);
 		pCamera.matrixWorldNeedsUpdate = true;
 
 		renderer.setViewport(left.viewport[0], left.viewport[1], left.viewport[2], left.viewport[3]);
@@ -183,7 +183,7 @@ THREE.OculusRiftEffect = function ( renderer, options ) {
 
 		pCamera.projectionMatrix.copy(right.proj);
 
-		pCamera.matrix.copy(camera.matrix).multiply(right.tranform);
+		pCamera.matrix.copy(camera.matrixWorld).multiply(right.tranform);
 		pCamera.matrixWorldNeedsUpdate = true;
 
 		renderer.setViewport(right.viewport[0], right.viewport[1], right.viewport[2], right.viewport[3]);
