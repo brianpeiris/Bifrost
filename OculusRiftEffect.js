@@ -130,20 +130,20 @@ THREE.OculusRiftEffect = function ( renderer, options ) {
 		left.lensCenter = new THREE.Vector2(lensShift, 0.0);
 		right.lensCenter = new THREE.Vector2(-lensShift, 0.0);
 
-		RTMaterial.uniforms['hmdWarpParam'].value = new THREE.Vector4(HMD.distortionK[0], HMD.distortionK[1], HMD.distortionK[2], HMD.distortionK[3]);
-		RTMaterial.uniforms['chromAbParam'].value = new THREE.Vector4(HMD.chromaAbParameter[0], HMD.chromaAbParameter[1], HMD.chromaAbParameter[2], HMD.chromaAbParameter[3]);
-		RTMaterial.uniforms['scaleIn'].value = new THREE.Vector2(1.0,1.0/aspect);
-		RTMaterial.uniforms['scale'].value = new THREE.Vector2(1.0/distScale, 1.0*aspect/distScale);
+		RTMaterial.uniforms.hmdWarpParam.value = new THREE.Vector4(HMD.distortionK[0], HMD.distortionK[1], HMD.distortionK[2], HMD.distortionK[3]);
+		RTMaterial.uniforms.chromAbParam.value = new THREE.Vector4(HMD.chromaAbParameter[0], HMD.chromaAbParameter[1], HMD.chromaAbParameter[2], HMD.chromaAbParameter[3]);
+		RTMaterial.uniforms.scaleIn.value = new THREE.Vector2(1.0,1.0/aspect);
+		RTMaterial.uniforms.scale.value = new THREE.Vector2(1.0/distScale, 1.0*aspect/distScale);
 
 		// Create render target
 		if ( renderTarget ) renderTarget.dispose();
 		renderTarget = new THREE.WebGLRenderTarget( HMD.hResolution*distScale/2, HMD.vResolution*distScale, RTParams );
-		RTMaterial.uniforms[ "texid" ].value = renderTarget;
+		RTMaterial.uniforms.texid.value = renderTarget;
 
-	}	
-	this.getHMD = function() {return HMD};
+	};
+	this.getHMD = function() {return HMD;};
 
-	this.setHMD(HMD);	
+	this.setHMD(HMD);
 
 	this.setSize = function ( width, height ) {
 		left.viewport = [width/2 - HMD.hResolution/2, height/2 - HMD.vResolution/2, HMD.hResolution/2, HMD.vResolution];
@@ -173,7 +173,7 @@ THREE.OculusRiftEffect = function ( renderer, options ) {
 
 		renderer.setViewport(left.viewport[0], left.viewport[1], left.viewport[2], left.viewport[3]);
 
-		RTMaterial.uniforms['lensCenter'].value = left.lensCenter;
+		RTMaterial.uniforms.lensCenter.value = left.lensCenter;
 		renderer.render( scene, pCamera, renderTarget, true );
 
 		renderer.render( finalScene, oCamera );
@@ -188,7 +188,7 @@ THREE.OculusRiftEffect = function ( renderer, options ) {
 
 		renderer.setViewport(right.viewport[0], right.viewport[1], right.viewport[2], right.viewport[3]);
 
-		RTMaterial.uniforms['lensCenter'].value = right.lensCenter;
+		RTMaterial.uniforms.lensCenter.value = right.lensCenter;
 
 		renderer.render( scene, pCamera, renderTarget, true );
 		renderer.render( finalScene, oCamera );
