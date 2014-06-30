@@ -9,6 +9,7 @@ var track_circ = 50;
 var track_radius = track_circ / 2 / Math.PI;
 var i = 0;
 var camera_pivot;
+var mouse = {};
 
 init();
 animate();
@@ -34,13 +35,14 @@ function init() {
     gnd_tex = new THREE.ImageUtils.loadTexture('grid.png');
     gnd_tex.wrapS = THREE.RepeatWrapping;
     gnd_tex.wrapT = THREE.RepeatWrapping;
-    gnd_tex.repeat.x = track_circ / 8;
+    gnd_tex.repeat.x = track_circ / 2;
     gnd_mat = new THREE.MeshPhongMaterial({
         color: 0xffff00,
-        ambient: 0xffff00,
         side: THREE.DoubleSide,
         map: gnd_tex,
     });
+    gnd_mat.transparent = true;
+    gnd_mat.opacity = 0.95;
     gnd = new THREE.Mesh(gnd_geo, gnd_mat);
     gnd.rotation.z = Math.PI / 2;
     scene.add(gnd);
@@ -94,6 +96,12 @@ function init() {
     stats = new Stats();
     document.body.appendChild(stats.domElement);
 
+    document.body.addEventListener('mousemove', function (e) {
+        if (e.button !== 0) {
+            mouse.x = e.pageX;
+            mouse.y = e.pageY;
+        }
+    });
 }
 
 function animate() {
@@ -102,16 +110,18 @@ function animate() {
     stats.begin();
 
     if (
-        // true ||
+        true ||
         Math.abs(webrift.x - old_webrift.x) > ep ||
         Math.abs(webrift.y -  old_webrift.y) > ep ||
         Math.abs(webrift.z -  old_webrift.z) > ep ||
         Math.abs(webrift.w -  old_webrift.w) > ep ||
         old_treadmill != treadmill.distance
     ){
-        camera.quaternion.set(webrift.x, webrift.y, webrift.z, webrift.w);
-        i += treadmill.distance / 100;
-        //i += 0.1;
+        //camera.rotation.y = -mouse.x / window.innerWidth * Math.PI * 2 - Math.PI;
+        //camera.rotation.x = -mouse.y / window.innerHeight * Math.PI * 2 - Math.PI;
+        //camera.quaternion.set(webrift.x, webrift.y, webrift.z, webrift.w);
+        //i += treadmill.distance / 100;
+        i += 0.05;
 
         camera_pivot.rotation.x = i / track_circ * Math.PI * -2;
 
